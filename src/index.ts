@@ -1,7 +1,7 @@
 //modulos externos
 import dotenv from "dotenv";
 import express  from "express";
-
+import {connect} from "./database/pstg"
 
 dotenv.config();
 
@@ -19,7 +19,7 @@ const app = express();
 
 app.use(express.json());
 
-app.use('/',(req,res)=>{
+app.use('/a',(req,res)=>{
     res.send("funcionó")
 })
 
@@ -28,3 +28,5 @@ app.use('/',(req,res)=>{
 app.listen(PORT,()=>{
   console.log(`Listening on port ${PORT}`)
 })
+
+connect();
