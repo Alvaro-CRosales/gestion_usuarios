@@ -2,6 +2,8 @@
 
 import  { Request,Response } from "express";
 import  UserService  from "./user.service";
+import { IUserModel, ILogInModel } from "./user.interface";
+
 
 
 
@@ -9,17 +11,25 @@ class UserCtrl {
 
     public async registerUser(req:Request,res:Response): Promise<void>{
 
-        const email = req.body.email
-        const password = req.body.password
-        const name = req.body.name
-        const age = req.body.age
-        const gender = req.body.gender
-        const bio = req.body.bio
+        const user:IUserModel = req.body;
+
         try {
-            const response = await UserService.createUser(email,password, name, age, gender, bio);
+            const response = await UserService.createUser(user);
             res.status(response[0]).json(response[1]);
         } catch (error) {
-            res.status(500).send(error)
+            res.status(500).send(error);
+        }
+    }
+
+    public async logIn(req:Request,res:Response): Promise<void>{
+
+        const credentials:ILogInModel = req.body;
+
+        try {
+            const response = await UserService.logInUser(credentials);
+            res.status(response[0]).json(response[1]);
+        } catch (error) {
+            res.status(500).send(error);
         }
     }
 

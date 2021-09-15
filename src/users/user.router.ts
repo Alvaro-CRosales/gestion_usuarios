@@ -1,7 +1,6 @@
 //imports
 import { Router } from "express";
 import userCtrl from "./user.ctrl";
-import UserCtrl from "./user.ctrl";
 
 export const userRouter = Router();
 
@@ -9,4 +8,5 @@ export const userRouter = Router();
 
 
 userRouter
-    .post("/sign", userCtrl.registerUser)
+    .post("/signup", userCtrl.registerUser)
+    .post("/login", userCtrl.logIn)
