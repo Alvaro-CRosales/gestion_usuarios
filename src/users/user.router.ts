@@ -1,7 +1,6 @@
 //imports
 import { Router } from "express";
 import userCtrl from "./user.ctrl";
-import jwt  from "../helpers/jwt";
 
 export const userRouter = Router();
 
@@ -11,4 +10,5 @@ export const userRouter = Router();
 userRouter
     .post("/signup", userCtrl.registerUser)
     .post("/login", userCtrl.logIn)
+    .post("/list/create", userCtrl.createList)
     .get("/list",userCtrl.getList)

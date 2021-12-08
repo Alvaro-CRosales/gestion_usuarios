@@ -1,6 +1,5 @@
 //imports
 import jwt from "jsonwebtoken";
-import { Response, Request, NextFunction } from "express";
 
 //clase
 
