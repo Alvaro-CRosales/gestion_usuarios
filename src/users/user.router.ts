@@ -8,7 +8,10 @@ export const userRouter = Router();
 
 
 userRouter
+    .get("/list",userCtrl.getList)
     .post("/signup", userCtrl.registerUser)
     .post("/login", userCtrl.logIn)
     .post("/list/create", userCtrl.createList)
-    .get("/list",userCtrl.getList)
+    .put("/list/update/:id", userCtrl.updateList)
+    .delete("/list/delete/:id", userCtrl.deleteList)
+    

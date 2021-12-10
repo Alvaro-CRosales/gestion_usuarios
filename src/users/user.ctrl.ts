@@ -24,10 +24,9 @@ class UserCtrl {
     public async logIn(req:Request,res:Response): Promise<void>{
 
         const credentials:ILogInModel = req.body;
-        const bod = req.body
 
         try {
-            const response = await UserService.logInUser(credentials,bod);
+            const response = await UserService.logInUser(credentials);
             res.status(response[0]).json(response[1]);
         } catch (error) {
             res.status(500).send(error);
@@ -46,6 +45,7 @@ class UserCtrl {
             res.status(500).send(error);
         }
     }
+
     public async createList(req:Request,res:Response): Promise<void>{
         
         const list:IListModel = req.body
@@ -57,6 +57,34 @@ class UserCtrl {
             res.status(500).send(error);
         }
     }
+
+    public async updateList(req:Request,res:Response): Promise<void>{
+        
+        const list:IListModel = req.body
+        const token = req.headers['authorization']
+        const list_id = req.params.id
+        try{
+            const response = await UserService.updateItems(list,token,list_id)
+            res.status(response[0]).json(response[1]);
+        } catch(error){
+            res.status(500).send(error);
+        }
+    }
+
+    public async deleteList(req:Request,res:Response): Promise<void>{
+        
+       
+        const token = req.headers['authorization']
+        const list_id = req.params.id
+        try{
+            const response = await UserService.deleteItems(token,list_id)
+            res.status(response[0]).json(response[1]);
+        } catch(error){
+            res.status(500).send(error);
+        }
+    }
+
+    
 
 }
 

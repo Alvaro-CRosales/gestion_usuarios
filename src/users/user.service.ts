@@ -33,7 +33,7 @@ class UserService {
         }
     }
 
-    public async logInUser(credentials: ILogInModel, body: any): Promise<any> {
+    public async logInUser(credentials: ILogInModel): Promise<any> {
         try {
 
             const validateEmail = (await pool.query(`SELECT email FROM public.user WHERE email = '${credentials.email}'`)).rows
@@ -44,7 +44,7 @@ class UserService {
                 return [404, { mensaje: "El correo no existe" }]
             }
             if (await compare(credentials.password, validatePass)) {
-                const token = await jwt.createJwt(body)
+                const token = await jwt.createJwt(credentials)
                 console.log(token)
                 return [200, { mensaje: "Se inició sesion correctamente", token }]
             } else {
@@ -56,6 +56,7 @@ class UserService {
             return [500, error]
         }
     }
+
     public async getItems(token: any, priority: any, task: any, description: any): Promise<any> {
 
 
@@ -78,8 +79,8 @@ class UserService {
                 const list = (await pool.query(filter)).rows
 
                 return [200, { mensaje: "funciona", list }]
-            }else{
-                return[400,{mensaje:"El token no es valido"}]
+            } else {
+                return [400, { mensaje: "El token no es valido" }]
             }
 
 
@@ -89,20 +90,75 @@ class UserService {
         }
     }
 
-    public async createItems(list: IListModel,token:any): Promise<any> {
+    public async createItems(list: IListModel, token: any): Promise<any> {
 
         try {
+
             const decoded = jwt.verifyJwt(token)
-            const id = (await pool.query(`SELECT id FROM public.user WHERE email= '${decoded}'`)).rows[0]
-            
-            await pool.query(`INSERT INTO public.list (name,description,priority_id,user_id) VALUES('${list.name}','${list.description}',${list.priority_id},${id.id})`)
-            return [200, { mensaje: "se agregó una nueva tarea" }]
+
+            if (decoded.length > 0) {
+                const id = (await pool.query(`SELECT id FROM public.user WHERE email= '${decoded}'`)).rows[0]
+
+                await pool.query(`INSERT INTO public.list (name,description,priority_id,user_id) VALUES('${list.name}','${list.description}',${list.priority_id},${id.id})`)
+                return [200, { mensaje: "se agregó una nueva tarea" }]
+            } else {
+                return [400, { mensaje: "El token no es valido" }]
+            }
+
+
+
         } catch (error) {
             console.log(error)
 
             return [500, error]
         }
 
+    }
+
+    public async updateItems(list:IListModel, token:any,list_id:any): Promise<any> {
+        
+        
+        try {
+
+            const decoded = jwt.verifyJwt(token)
+
+            if (decoded.length > 0) {
+
+                const user_id = (await pool.query(`SELECT id FROM public.user WHERE email= '${decoded}'`)).rows[0]
+                
+                await pool.query(`UPDATE public.list SET name='${list.name}', description='${list.description}',priority_id=${list.priority_id} WHERE user_id = ${user_id.id} AND id=${list_id}`)
+
+            
+                return [200, { mensaje: "Se actualizó la tarea exitosamente" }]
+            } else {
+                return [400, { mensaje: "El token no es valido" }]
+            }
+
+           
+        } catch (error) {
+            console.log(error)
+            return [500, error]
+        }
+
+    }
+
+    public async deleteItems(token:any,list_id:any): Promise<any> {
+
+        try {
+            const decoded = jwt.verifyJwt(token)
+            
+            if(decoded.length > 0){
+                const user_id = (await pool.query(`SELECT id FROM public.user WHERE email= '${decoded}'`)).rows[0]
+
+                await pool.query(`DELETE FROM public.list WHERE user_id = ${user_id.id} AND id=${list_id}`)
+
+                return [200, { mensaje: "Se eliminó la tarea exitosamente" }]
+            }else{
+                return [400, { mensaje: "El token no es valido" }]
+            }
+        } catch (error) {
+            
+        }
     }
 }
 
