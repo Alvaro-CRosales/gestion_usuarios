@@ -38,17 +38,17 @@ class UserService {
 
             const validateEmail = (await pool.query(`SELECT email FROM public.user WHERE email = '${credentials.email}'`)).rows
             const validatePass = (await pool.query(`SELECT password FROM public.user WHERE email = '${credentials.email}'`)).rows[0].password.toString()
-            console.log(validatePass)
 
             if (validateEmail.length == 0) {
                 return [404, { mensaje: "El correo no existe" }]
             }
+
             if (await compare(credentials.password, validatePass)) {
                 const token = await jwt.createJwt(credentials)
                 console.log(token)
                 return [200, { mensaje: "Se inició sesion correctamente", token }]
             } else {
-                return [400, { mensaje: "El correo o la contraseña son incorrectos" }]
+                return [400, { mensaje: "la contraseña es incorrecta" }]
             }
 
         } catch (error) {
@@ -115,9 +115,9 @@ class UserService {
 
     }
 
-    public async updateItems(list:IListModel, token:any,list_id:any): Promise<any> {
-        
-        
+    public async updateItems(list: IListModel, token: any, list_id: any): Promise<any> {
+
+
         try {
 
             const decoded = jwt.verifyJwt(token)
@@ -125,16 +125,16 @@ class UserService {
             if (decoded.length > 0) {
 
                 const user_id = (await pool.query(`SELECT id FROM public.user WHERE email= '${decoded}'`)).rows[0]
-                
+
                 await pool.query(`UPDATE public.list SET name='${list.name}', description='${list.description}',priority_id=${list.priority_id} WHERE user_id = ${user_id.id} AND id=${list_id}`)
 
-            
+
                 return [200, { mensaje: "Se actualizó la tarea exitosamente" }]
             } else {
                 return [400, { mensaje: "El token no es valido" }]
             }
 
-           
+
         } catch (error) {
             console.log(error)
             return [500, error]
@@ -142,22 +142,22 @@ class UserService {
 
     }
 
-    public async deleteItems(token:any,list_id:any): Promise<any> {
+    public async deleteItems(token: any, list_id: any): Promise<any> {
 
         try {
             const decoded = jwt.verifyJwt(token)
-            
-            if(decoded.length > 0){
+
+            if (decoded.length > 0) {
                 const user_id = (await pool.query(`SELECT id FROM public.user WHERE email= '${decoded}'`)).rows[0]
 
                 await pool.query(`DELETE FROM public.list WHERE user_id = ${user_id.id} AND id=${list_id}`)
 
                 return [200, { mensaje: "Se eliminó la tarea exitosamente" }]
-            }else{
+            } else {
                 return [400, { mensaje: "El token no es valido" }]
             }
         } catch (error) {
-            
+
         }
     }
 }
