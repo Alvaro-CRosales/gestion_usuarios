@@ -18,8 +18,8 @@ class UserService {
 
             if (validate.length == 0) {
 
-                const result = await pool.query(`INSERT INTO public.user (email,password,name ) VALUES 
-                ('${user.email}','${user.password}','${user.name}')`)
+                const result = await pool.query(`INSERT INTO public.user (email,password,name,rol_id ) VALUES 
+                ('${user.email}','${user.password}','${user.name}',2)`)
                 return [200, { mensaje: "se agregó un nuevo usuario" }]
 
             } else {
@@ -37,11 +37,12 @@ class UserService {
         try {
 
             const validateEmail = (await pool.query(`SELECT email FROM public.user WHERE email = '${credentials.email}'`)).rows
-            const validatePass = (await pool.query(`SELECT password FROM public.user WHERE email = '${credentials.email}'`)).rows[0].password.toString()
-
-            if (validateEmail.length == 0) {
+          
+            if (validateEmail.length === 0) {
                 return [404, { mensaje: "El correo no existe" }]
             }
+            
+            const validatePass = (await pool.query(`SELECT password FROM public.user WHERE email = '${credentials.email}'`)).rows[0].password.toString()
 
             if (await compare(credentials.password, validatePass)) {
                 const token = await jwt.createJwt(credentials)
