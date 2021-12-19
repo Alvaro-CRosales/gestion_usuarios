@@ -98,9 +98,16 @@ class UserService {
             const decoded = jwt.verifyJwt(token)
 
             if (decoded.length > 0) {
-                const id = (await pool.query(`SELECT id FROM public.user WHERE email= '${decoded}'`)).rows[0]
 
-                await pool.query(`INSERT INTO public.list (name,description,priority_id,user_id) VALUES('${list.name}','${list.description}',${list.priority_id},${id.id})`)
+                const id = (await pool.query(`SELECT id FROM public.user WHERE email= '${decoded}'`)).rows[0]
+                
+
+                const item = (await pool.query(`INSERT INTO public.list (name,description,priority_id) VALUES('${list.name}','${list.description}',${list.priority_id}) RETURNING id`)).rows[0].id
+                
+
+                await pool.query(`INSERT INTO public.rel_user_list (list_id,user_id,rol_id) VALUES(${item},${id.id},4)`)
+
+
                 return [200, { mensaje: "se agregó una nueva tarea" }]
             } else {
                 return [400, { mensaje: "El token no es valido" }]
@@ -144,7 +151,8 @@ class UserService {
     }
 
     public async deleteItems(token: any, list_id: any): Promise<any> {
-
+        //se modificará la eliminación, la idea es, hacer una query para traer los datos de la tabla resultante, compararlos
+        //con los datos de usuario y tarea a eliminar y si coinciden eliminarl la tarea
         try {
             const decoded = jwt.verifyJwt(token)
 
