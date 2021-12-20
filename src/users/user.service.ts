@@ -3,6 +3,7 @@ import pool from "../database/pstg"
 import { ILogInModel, IUserModel, IListModel } from "./user.interface"
 import { hash, compare } from 'bcrypt'
 import jwt from '../helpers/jwt'
+import { type } from "os";
 
 
 //clase con los metodos
@@ -62,14 +63,17 @@ class UserService {
 
 
 
-        try {
+         try {
 
             const decoded = jwt.verifyJwt(token)
+
             if (decoded.length > 0) {
 
-                let filter = `SELECT l.name as TAREA, l.description as descripcion,p.name as Prioridad,u.email as USUARIO from ((public.list as l
-                INNER JOIN public.priority as p ON l.priority_id = p.id)
-                INNER JOIN public.user as u ON l.user_id = u.id) WHERE u.email = '${decoded}'`
+                let filter = `SELECT u.name as USUARIO,r.name as ROL,l.name as TAREA, l.description as DESCRIPCION, p.name FROM ((((public.rel_user_list AS rul
+                    INNER JOIN public.user as u ON rul.user_id = u.id)
+                    INNER JOIN public.list as l ON rul.list_id = l.id)
+                    INNER JOIN public.rol as r ON rul.rol_id = r.id)
+                    INNER JOIN public.priority as p ON l.priority_id = p.id) WHERE u.email = '${decoded}'`
 
                 if (priority) filter += ` AND p.id= '${priority}'`
 
@@ -80,6 +84,7 @@ class UserService {
                 const list = (await pool.query(filter)).rows
 
                 return [200, { mensaje: "funciona", list }]
+
             } else {
                 return [400, { mensaje: "El token no es valido" }]
             }
@@ -88,7 +93,10 @@ class UserService {
         } catch (error) {
             console.log(error)
             return [500, error]
-        }
+        } 
+
+
+        
     }
 
     public async createItems(list: IListModel, token: any): Promise<any> {
@@ -153,20 +161,37 @@ class UserService {
     public async deleteItems(token: any, list_id: any): Promise<any> {
         //se modificará la eliminación, la idea es, hacer una query para traer los datos de la tabla resultante, compararlos
         //con los datos de usuario y tarea a eliminar y si coinciden eliminarl la tarea
+
+
         try {
             const decoded = jwt.verifyJwt(token)
 
+            
+
             if (decoded.length > 0) {
-                const user_id = (await pool.query(`SELECT id FROM public.user WHERE email= '${decoded}'`)).rows[0]
+                
+                const { id } = (await pool.query(`SELECT id FROM public.user WHERE email= '${decoded}'`)).rows[0]
+                
+                const result = (await pool.query(`SELECT list_id, user_id FROM public.rel_user_list WHERE user_id = ${id} AND list_id=${list_id}`)).rows[0]
+                
 
-                await pool.query(`DELETE FROM public.list WHERE user_id = ${user_id.id} AND id=${list_id}`)
+                if(result) {
 
-                return [200, { mensaje: "Se eliminó la tarea exitosamente" }]
+                    await pool.query(`DELETE FROM public.list WHERE id = ${list_id}`)
+            
+
+                    return [200, { mensaje: "Se eliminó la tarea exitosamente" }]
+
+                }else{
+                    return [400, { mensaje: "Esa tarea no existe" }]
+                }
+
+                
             } else {
                 return [400, { mensaje: "El token no es valido" }]
             }
         } catch (error) {
-
+            return[500,error]
         }
     }
 
