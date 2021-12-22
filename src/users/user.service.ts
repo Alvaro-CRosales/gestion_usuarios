@@ -140,12 +140,18 @@ class UserService {
 
             if (decoded.length > 0) {
 
-                const user_id = (await pool.query(`SELECT id FROM public.user WHERE email= '${decoded}'`)).rows[0]
+                const { id } = (await pool.query(`SELECT id FROM public.user WHERE email= '${decoded}'`)).rows[0]
 
-                await pool.query(`UPDATE public.list SET name='${list.name}', description='${list.description}',priority_id=${list.priority_id} WHERE user_id = ${user_id.id} AND id=${list_id}`)
+                const result = (await pool.query(`SELECT list_id, user_id FROM public.rel_user_list WHERE user_id = ${id} AND list_id=${list_id}`)).rows[0]
 
+                if (result) {
+                    await pool.query(`UPDATE public.list SET name='${list.name}',description='${list.description}',priority_id=${list.priority_id} WHERE id=${list_id}`)
+                    return [200, { mensaje: "Se actualizó la tarea exitosamente" }]
+                }else{
+                    return[400, {mensaje:"esa tarea no existe"}]
+                }
 
-                return [200, { mensaje: "Se actualizó la tarea exitosamente" }]
+                
             } else {
                 return [400, { mensaje: "El token no es valido" }]
             }
