@@ -12,6 +12,7 @@ userRouter
     .post("/signup", userCtrl.registerUser)
     .post("/login", userCtrl.logIn)
     .post("/list/create", userCtrl.createList)
+    .post("/list/collaborator/:id", userCtrl.addCollaborator)
     .put("/list/update/:id", userCtrl.updateList)
     .delete("/list/delete/:id", userCtrl.deleteList)
     

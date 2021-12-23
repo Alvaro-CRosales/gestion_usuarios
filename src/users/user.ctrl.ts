@@ -84,6 +84,18 @@ class UserCtrl {
         }
     }
 
+    public async addCollaborator(req:Request,res:Response): Promise<void>{
+       
+        const token = req.headers['authorization']
+        const list_id = req.params.id
+        try{
+            const response = await UserService.addCollab(token,list_id)
+            res.status(response[0]).json(response[1]);
+        } catch(error){
+            res.status(500).send(error);
+        }
+    }
+
     
 
 }

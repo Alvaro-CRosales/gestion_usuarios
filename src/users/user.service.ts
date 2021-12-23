@@ -201,6 +201,43 @@ class UserService {
         }
     }
 
+    public async addCollab(token:any,list_id:any): Promise<any>{
+
+        try {
+            
+            const decoded = jwt.verifyJwt(token)
+
+            if(decoded.length > 0 ){
+
+                const { id } = (await pool.query(`SELECT id FROM public.user WHERE email= '${decoded}'`)).rows[0];
+
+                const list = (await pool.query(`SELECT list_id, user_id FROM public.rel_user_list WHERE list_id=${list_id} AND user_id=${id} AND rol_id=4`)).rows[0];
+
+                if(list){
+
+                console.log("si jaló")
+
+                return[200,{mensaje:"si jala"}]
+
+                }else{
+
+                console.log("no jala")
+
+                return[400,{mensaje:"no jala"}]
+
+                }
+
+            }else{
+                return [400, { mensaje: "El token no es valido" }]
+            }
+
+
+
+        } catch (error) {
+            return[500,error]
+        }
+    }
+
     //comentario para que me de otro día activo en github, hoy no hay aninmos de nada
 }
 
