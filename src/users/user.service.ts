@@ -14,10 +14,9 @@ class UserService {
     public async createUser(user: IUserModel): Promise<any> {
         try {
             user.password = await hash(user.password, 10);
-            const validate = (await pool.query(`SELECT email FROM public.user WHERE email = '${user.email}'`)).rows
-            console.log(validate)
+            const validate = (await pool.query(`SELECT email FROM public.user WHERE email = '${user.email}'`)).rows[0]
 
-            if (validate.length == 0) {
+            if (!validate) {
 
                 const result = await pool.query(`INSERT INTO public.user (email,password,name,rol_id ) VALUES 
                 ('${user.email}','${user.password}','${user.name}',2)`)
@@ -201,7 +200,7 @@ class UserService {
         }
     }
 
-    public async addCollab(token:any,list_id:any): Promise<any>{
+    public async addCollab(token:any,list:any, body:any): Promise<any>{
 
         try {
             
@@ -211,19 +210,27 @@ class UserService {
 
                 const { id } = (await pool.query(`SELECT id FROM public.user WHERE email= '${decoded}'`)).rows[0];
 
-                const list = (await pool.query(`SELECT list_id, user_id FROM public.rel_user_list WHERE list_id=${list_id} AND user_id=${id} AND rol_id=4`)).rows[0];
+                const {list_name,user_name} = (await pool.query(`SELECT l.name AS list_name, u.name as user_name FROM ((rel_user_list rul
+                    INNER JOIN public.user u on u.id = rul.user_id)
+                    INNER JOIN public.list l on l.id= rul.list_id) WHERE u.id=${id} AND l.id = ${list} AND rul.rol_id = 4`)).rows[0];
 
-                if(list){
+                if(user_name){
 
-                console.log("si jaló")
+                    console.log(list_name)
+                    console.log(user_name)
 
-                return[200,{mensaje:"si jala"}]
+
+                    //const result = await pool.query(`INSERT INTO public.notifications (description,list_id,user_id,status_id) VALUES('${description}',${list},${id},6) RETURNING id `)
+
+                    console.log("si jaló");
+
+                    return[200,{mensaje:"si jala"}]
 
                 }else{
 
-                console.log("no jala")
+                    console.log("no jala")
 
-                return[400,{mensaje:"no jala"}]
+                    return[400,{mensaje:"no jala"}]
 
                 }
 
