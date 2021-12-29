@@ -88,8 +88,9 @@ class UserCtrl {
        
         const token = req.headers['authorization']
         const list_id = req.params.id
+        const body = req.body.email
         try{
-            const response = await UserService.addCollab(token,list_id)
+            const response = await UserService.addCollab(token,list_id,body)
             res.status(response[0]).json(response[1]);
         } catch(error){
             res.status(500).send(error);

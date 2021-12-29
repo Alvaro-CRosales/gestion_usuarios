@@ -203,7 +203,7 @@ class UserService {
     public async addCollab(token:any,list:any, body:any): Promise<any>{
 
         try {
-            
+
             const decoded = jwt.verifyJwt(token)
 
             if(decoded.length > 0 ){
@@ -215,16 +215,16 @@ class UserService {
                     INNER JOIN public.list l on l.id= rul.list_id) WHERE u.id=${id} AND l.id = ${list} AND rul.rol_id = 4`)).rows[0];
 
                 if(user_name){
+                    
+                    const description = `${user_name} te ha invitado a colaborar en la siguiente tarea:${list_name}`
+                    
+                    const {user_id} =  (await pool.query(`SELECT id as user_id FROM public.user WHERE email='${body}'`)).rows[0]
 
-                    console.log(list_name)
-                    console.log(user_name)
+                    await pool.query(`INSERT INTO public.notifications (description,list_id,user_id,status_id) VALUES('${description}',${list},${user_id},6) `)
 
+                    
 
-                    //const result = await pool.query(`INSERT INTO public.notifications (description,list_id,user_id,status_id) VALUES('${description}',${list},${id},6) RETURNING id `)
-
-                    console.log("si jaló");
-
-                    return[200,{mensaje:"si jala"}]
+                    return[200,{mensaje:"Se envió la solicitud"}]
 
                 }else{
 
@@ -242,6 +242,29 @@ class UserService {
 
         } catch (error) {
             return[500,error]
+        }
+    }
+
+    public async getNotifications(token:any): Promise<any>{
+        try {
+
+            const decoded = jwt.verifyJwt(token)
+
+            if(decoded.length > 0){
+
+                const { id } = (await pool.query(`SELECT id FROM public.user WHERE email= '${decoded}'`)).rows[0];
+
+                const result = await pool.query(`SELECT description FROM public.notifications WHERE user_id=${id}`)
+
+            }else{
+                return[400,{mensaje:"el token no es valido"}]
+            }
+
+
+        } catch (error) {
+            console.log(error)
+
+            return [500, error]
         }
     }
 
