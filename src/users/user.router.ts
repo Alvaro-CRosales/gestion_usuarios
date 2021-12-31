@@ -9,10 +9,12 @@ export const userRouter = Router();
 
 userRouter
     .get("/list",userCtrl.getList)
+    .get("/notifications", userCtrl.getUserNotifications)
     .post("/signup", userCtrl.registerUser)
     .post("/login", userCtrl.logIn)
     .post("/list/create", userCtrl.createList)
     .post("/list/collaborator/:id", userCtrl.addCollaborator)
     .put("/list/update/:id", userCtrl.updateList)
+    .put("/notifications/status/:id", userCtrl.updateUserNotification)
     .delete("/list/delete/:id", userCtrl.deleteList)
     

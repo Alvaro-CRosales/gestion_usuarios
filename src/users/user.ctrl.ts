@@ -97,6 +97,36 @@ class UserCtrl {
         }
     }
 
+    public async getUserNotifications(req:Request,res:Response): Promise<void>{
+       
+        const token = req.headers['authorization']
+        
+        try{
+            const response = await UserService.getNotifications(token)
+            res.status(response[0]).json(response[1]);
+        } catch(error){
+            res.status(500).send(error);
+        }
+    }
+
+    public async updateUserNotification(req:Request, res:Response): Promise<void>{
+
+        const token = req.headers['authorization'];
+
+        const status_id = req.body.status_id;
+
+        const list = req.params.id;
+
+        try {
+            
+            const response = await UserService.updateNotification(token,status_id,list);
+            res.status(response[0]).json(response[1]);
+            
+        } catch (error) {
+
+            res.status(500).send(error);
+        }
+    }
     
 
 }

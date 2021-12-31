@@ -250,14 +250,27 @@ class UserService {
 
             const decoded = jwt.verifyJwt(token)
 
-            if(decoded.length > 0){
+            if(decoded){
 
                 const { id } = (await pool.query(`SELECT id FROM public.user WHERE email= '${decoded}'`)).rows[0];
+                
+                const result = (await pool.query(`SELECT description FROM public.notifications WHERE user_id=${id}`)).rows
 
-                const result = await pool.query(`SELECT description FROM public.notifications WHERE user_id=${id}`)
+                if(result){
+                   
+                    return[200,{mensaje:"Tus notificaciones",result}]
+                    
+                }else{
 
+                    return[200,{mensaje:"No tienes ninguna notificación"}]
+
+                }
+
+            
             }else{
+
                 return[400,{mensaje:"el token no es valido"}]
+
             }
 
 
@@ -265,6 +278,44 @@ class UserService {
             console.log(error)
 
             return [500, error]
+        }
+    }
+
+    public async updateNotification(token:any,status_id:any,list:any): Promise<any>{
+        
+        try {
+
+            const decoded = jwt.verifyJwt(token)
+
+            if (decoded) {
+
+                console.log("funciona")
+
+                const { id } = (await pool.query(`SELECT id FROM public.user WHERE email= '${decoded}'`)).rows[0];
+
+                const verify = (await pool.query(`SELECT id FROM public.notifications WHERE user_id=${id} AND list_id=${list}`)).rows;
+
+                if(verify) {
+
+                    await pool.query(`UPDATE public.notifications SET status_id=${status_id} WHERE list_id = ${list}`)
+
+                    return[200,{mensaje:"Se actualizó el estatus"}]
+
+                }else{
+
+                    return[400,{mensaje:"ocurrió un error"}]
+
+                }
+
+                
+                
+
+            }else{
+                return[400,{mensaje:"Token no valido"}]
+            }
+            
+        } catch (error) {
+            return[500,error]
         }
     }
 
