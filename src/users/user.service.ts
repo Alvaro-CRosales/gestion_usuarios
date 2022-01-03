@@ -297,7 +297,12 @@ class UserService {
 
                 if(verify) {
 
-                    await pool.query(`UPDATE public.notifications SET status_id=${status_id} WHERE list_id = ${list}`)
+                    const statusId = await (await pool.query(`UPDATE public.notifications SET status_id=${status_id} WHERE list_id = ${list} RETURNING status_id`)).rows[0].status_id
+
+                    if(statusId === 4){
+                        console.log("funciona")
+
+                    }
 
                     return[200,{mensaje:"Se actualizó el estatus"}]
 
