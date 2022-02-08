@@ -3,7 +3,6 @@ import pool from "../database/pstg"
 import { ILogInModel, IUserModel, IListModel } from "./user.interface"
 import { hash, compare } from 'bcrypt'
 import jwt from '../helpers/jwt'
-import { type } from "os";
 
 
 //clase con los metodos
@@ -164,9 +163,8 @@ class UserService {
     }
 
     public async deleteItems(token: any, list_id: any): Promise<any> {
-        //se modificará la eliminación, la idea es, hacer una query para traer los datos de la tabla resultante, compararlos
-        //con los datos de usuario y tarea a eliminar y si coinciden eliminarl la tarea
-
+        
+        //agregar el que los colaboradores no puedan eliminar una tarea
 
         try {
             const decoded = jwt.verifyJwt(token)
@@ -213,12 +211,19 @@ class UserService {
                 const {list_name,user_name} = (await pool.query(`SELECT l.name AS list_name, u.name as user_name FROM ((rel_user_list rul
                     INNER JOIN public.user u on u.id = rul.user_id)
                     INNER JOIN public.list l on l.id= rul.list_id) WHERE u.id=${id} AND l.id = ${list} AND rul.rol_id = 4`)).rows[0];
+                
+                const {user_id} =  (await pool.query(`SELECT id as user_id FROM public.user WHERE email='${body}'`)).rows[0]
+                const verify = (await pool.query(`SELECT * FROM public.rel_user_list WHERE user_id = ${user_id} AND list_id = ${list}`)).rows[0]
+
+                if(verify){
+                    return[200,{mensaje: "el usuario ya está colaborando"}]
+                }
 
                 if(user_name){
                     
                     const description = `${user_name} te ha invitado a colaborar en la siguiente tarea:${list_name}`
                     
-                    const {user_id} =  (await pool.query(`SELECT id as user_id FROM public.user WHERE email='${body}'`)).rows[0]
+                    
 
                     await pool.query(`INSERT INTO public.notifications (description,list_id,user_id,status_id) VALUES('${description}',${list},${user_id},6) `)
 
@@ -228,9 +233,7 @@ class UserService {
 
                 }else{
 
-                    console.log("no jala")
-
-                    return[400,{mensaje:"no jala"}]
+                    return[400,{mensaje:"Acceso denegado"}]
 
                 }
 
@@ -254,15 +257,16 @@ class UserService {
 
                 const { id } = (await pool.query(`SELECT id FROM public.user WHERE email= '${decoded}'`)).rows[0];
                 
-                const result = (await pool.query(`SELECT description FROM public.notifications WHERE user_id=${id}`)).rows
-
+                const result = (await pool.query(`SELECT description FROM public.notifications WHERE user_id=${id} AND status_id=6`)).rows[0]
+               
                 if(result){
                    
                     return[200,{mensaje:"Tus notificaciones",result}]
+                   
                     
                 }else{
-
                     return[200,{mensaje:"No tienes ninguna notificación"}]
+                    
 
                 }
 
@@ -293,15 +297,18 @@ class UserService {
 
                 const { id } = (await pool.query(`SELECT id FROM public.user WHERE email= '${decoded}'`)).rows[0];
 
-                const verify = (await pool.query(`SELECT id FROM public.notifications WHERE user_id=${id} AND list_id=${list}`)).rows;
+                const verify = (await pool.query(`SELECT id FROM public.notifications WHERE user_id=${id} AND list_id=${list}`)).rows[0];
 
                 if(verify) {
 
                     const statusId = (await pool.query(`UPDATE public.notifications SET status_id=${status_id} WHERE list_id = ${list} RETURNING status_id`)).rows[0].status_id
 
                     if(statusId === 4){
-                        console.log("funciona")
                         await pool.query(`INSERT INTO public.rel_user_list (list_id, user_id, rol_id) VALUES (${list}, ${id},3) `)
+                        return[200,{mensaje:"Se actualizó el estatus"}]
+                    }
+
+                    if(statusId === 5){
                         return[200,{mensaje:"Se actualizó el estatus"}]
                     }
 
