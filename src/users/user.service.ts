@@ -332,6 +332,30 @@ class UserService {
         }
     }
 
+    public async deteleUser(token:any, user_email: any): Promise<any>{
+        try{
+            const decoded = jwt.verifyJwt(token);
+            if(decoded.length > 0){
+
+                const { id } = (await pool.query(`SELECT id FROM public.user WHERE email= '${decoded}'`)).rows[0];
+
+                const {rol_id} = (await pool.query(`SELECT rol_id FROM public.user WHERE id=${id}`)).rows[0];
+                console.log(rol_id)
+                if(rol_id === 1){
+                    await pool.query(`DELETE FROM public.user WHERE email='${user_email}'`)
+                    return[200,{mensaje:"Se eliminó al usuario"}];
+                }else{
+                    return[400,{mensaje:"acceso denegado"}]
+                }
+            }else{
+                return[400,{mensaje:"Token no valido"}]
+            }
+        }catch(error){
+            return[500,error]
+        }
+    }
+
+    
     //comentario para que me de otro día activo en github, hoy no hay aninmos de nada
 }
 

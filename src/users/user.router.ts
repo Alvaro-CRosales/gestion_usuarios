@@ -16,5 +16,7 @@ userRouter
     .post("/list/collaborator/:id", userCtrl.addCollaborator)
     .put("/list/update/:id", userCtrl.updateList)
     .put("/notifications/status/:id", userCtrl.updateUserNotification)
+    .delete("/user/delete", userCtrl.deleteUser)
     .delete("/list/delete/:id", userCtrl.deleteList)
+    
     

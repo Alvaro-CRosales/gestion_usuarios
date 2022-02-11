@@ -127,6 +127,23 @@ class UserCtrl {
             res.status(500).send(error);
         }
     }
+
+    public async deleteUser(req:Request, res:Response): Promise<void>{
+
+        const token = req.headers['authorization'];
+
+        const user_email = req.body.email;
+
+        try {
+            
+            const response = await UserService.deteleUser(token,user_email);
+            res.status(response[0]).json(response[1]);
+            
+        } catch (error) {
+
+            res.status(500).send(error);
+        }
+    }
     
 
 }
